@@ -5,29 +5,96 @@
   <title>Phosfor Font Showcase</title>
   <style>
     body {
-      margin: 0; font-family: sans-serif; background: #f8f8f8; color: #333; padding: 2rem;
+      margin: 0;
+      font-family: sans-serif;
+      background: #f8f8f8;
+      color: #333;
+      padding: 2rem;
     }
-    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
-    select { font-size: 1rem; padding: 0.5rem; margin: 1rem 0; }
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    select, input[type="range"] {
+      font-size: 1rem;
+      padding: 0.5rem;
+      margin: 1rem 0;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+    .preview-text {
+      font-family: 'PhosforCustom';
+      font-size: 2.5rem;
+      margin: 1rem 0;
+      padding: 1rem;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
     .glyph-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
-      gap: 1rem; background: #fff; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      gap: 1rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .glyph-cell {
-      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0.5rem;
+      cursor: pointer;
     }
     .glyph {
-      font-size: 2.5rem; line-height: 1;
+      font-size: 2.5rem;
+      line-height: 1;
+      font-family: 'PhosforCustom';
     }
-    .glyph-label { font-size: 0.75rem; color: #777; margin-top: 0.3rem; }
+    .glyph-label {
+      font-size: 0.75rem;
+      color: #777;
+      margin-top: 0.3rem;
+    }
+    .inspector {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      z-index: 9999;
+      text-align: center;
+    }
+    .inspector .glyph {
+      font-size: 6rem;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 9998;
+    }
   </style>
 </head>
 <body>
   <h1>Phosfor Typeface Showcase</h1>
-  <label for="styleSelector">Select style:</label>
-  <select id="styleSelector">
-    <option value="Phosfor-RadiantMk1.otf">Radiant Mk1</option>
+  <div class="controls">
+    <label for="styleSelector">Select style:</label>
+    <select id="styleSelector">
     <option value="Phosfor-Vaulted.otf">Vaulted</option>
     <option value="Phosfor-Aether5Pixel.otf">Aether 5 Pixel</option>
     <option value="Phosfor-Aether52Tilted.otf">Aether 52 Pixel Tilted</option>
@@ -49,24 +116,46 @@
     <option value="Phosfor-Aether772XBTilt.otf">Aether 772 Extra Bold Tilt</option>
     <option value="Phosfor-Aether773XBI.otf">Aether 773 Extra Bold Italic</option>
     <option value="Phosfor-Aether977XBE.otf">Aether 977 Extra Bold Extended</option>
-    <option value="Phosfor-RadiantMk2.otf">Radiant Mk2</option>
-  </select>
+    </select>
 
+    <label for="fontSize">Size:</label>
+    <input type="range" id="fontSize" min="16" max="96" value="40">
+
+    <label for="previewInput">Preview:</label>
+    <input type="text" id="previewInput" value="The quick brown fox..." style="flex:1; min-width: 200px;">
+  </div>
+
+  <div id="preview" class="preview-text"></div>
   <div class="glyph-grid" id="glyphGrid"></div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="inspector" id="inspector">
+    <div class="glyph" id="inspectorGlyph"></div>
+    <div class="glyph-label" id="inspectorLabel"></div>
+  </div>
 
   <script>
     const unicodeList = Array.from({ length: 94 }, (_, i) => 33 + i);
     const grid = document.getElementById('glyphGrid');
     const styleSelector = document.getElementById('styleSelector');
+    const fontSizeSlider = document.getElementById('fontSize');
+    const preview = document.getElementById('preview');
+    const previewInput = document.getElementById('previewInput');
+    const overlay = document.getElementById('overlay');
+    const inspector = document.getElementById('inspector');
+    const inspectorGlyph = document.getElementById('inspectorGlyph');
+    const inspectorLabel = document.getElementById('inspectorLabel');
+
     const baseURL = 'https://gigidesigns-netizen.github.io/phosfor-font-superfamily/fonts/';
 
     function updateFont(fontFile) {
       const url = baseURL + fontFile;
       const fontFace = new FontFace('PhosforCustom', `url(${url}) format("opentype")`);
       fontFace.load().then(loaded => {
-        document.fonts.clear();  // optional
+        document.fonts.clear();
         document.fonts.add(loaded);
         renderGlyphs();
+        updatePreview();
       }).catch(err => console.error('Font load failed:', err));
     }
 
@@ -78,17 +167,44 @@
         cell.className = 'glyph-cell';
         const glyph = document.createElement('div');
         glyph.className = 'glyph';
-        glyph.style.fontFamily = 'PhosforCustom';
         glyph.textContent = ch;
+        glyph.style.fontSize = fontSizeSlider.value + 'px';
+
         const label = document.createElement('div');
         label.className = 'glyph-label';
         label.textContent = 'U+' + cp.toString(16).toUpperCase().padStart(4, '0');
-        cell.append(glyph, label);
+
+        cell.appendChild(glyph);
+        cell.appendChild(label);
+        cell.addEventListener('click', () => openInspector(ch, label.textContent));
         grid.appendChild(cell);
       });
     }
 
+    function updatePreview() {
+      preview.style.fontSize = fontSizeSlider.value + 'px';
+      preview.textContent = previewInput.value;
+    }
+
+    function openInspector(char, label) {
+      inspectorGlyph.textContent = char;
+      inspectorLabel.textContent = label;
+      overlay.style.display = 'block';
+      inspector.style.display = 'block';
+    }
+
+    overlay.addEventListener('click', () => {
+      inspector.style.display = 'none';
+      overlay.style.display = 'none';
+    });
+
     styleSelector.addEventListener('change', () => updateFont(styleSelector.value));
+    fontSizeSlider.addEventListener('input', () => {
+      renderGlyphs();
+      updatePreview();
+    });
+    previewInput.addEventListener('input', updatePreview);
+
     updateFont(styleSelector.value);
   </script>
 </body>
