@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Phosfor Font Superfamily Showcase</title>
+  <title>Phosfor Font Showcase</title>
   <style>
     body {
       margin: 0;
@@ -76,7 +76,7 @@
       text-align: center;
     }
     .inspector .glyph {
-      font-size: 6rem;
+      font-size: 12rem;
     }
     .overlay {
       display: none;
@@ -150,6 +150,67 @@
 
     const baseURL = 'https://gigidesigns-netizen.github.io/phosfor-font-superfamily/fonts/';
 
+    const unicodeNames = {
+      0x0021: 'Exclamation Mark',
+      0x0022: 'Quotation Mark',
+      0x0023: 'Number Sign',
+      0x0024: 'Dollar Sign',
+      0x0025: 'Percent Sign',
+      0x0026: 'Ampersand',
+      0x0027: 'Apostrophe',
+      0x0028: 'Left Parenthesis',
+      0x0029: 'Right Parenthesis',
+      0x002A: 'Asterisk',
+      0x002B: 'Plus Sign',
+      0x002C: 'Comma',
+      0x002D: 'Hyphen-Minus',
+      0x002E: 'Period',
+      0x002F: 'Slash',
+      0x0030: 'Digit Zero',
+      0x0031: 'Digit One',
+      0x0032: 'Digit Two',
+      0x0033: 'Digit Three',
+      0x0034: 'Digit Four',
+      0x0035: 'Digit Five',
+      0x0036: 'Digit Six',
+      0x0037: 'Digit Seven',
+      0x0038: 'Digit Eight',
+      0x0039: 'Digit Nine',
+      0x003A: 'Colon',
+      0x003B: 'Semicolon',
+      0x003C: 'Less-Than Sign',
+      0x003D: 'Equals Sign',
+      0x003E: 'Greater-Than Sign',
+      0x003F: 'Question Mark',
+      0x0040: 'At Sign',
+      0x0041: 'Uppercase A',
+      0x0042: 'Uppercase B',
+      0x0043: 'Uppercase C',
+      0x0044: 'Uppercase D',
+      0x0045: 'Uppercase E',
+      0x0046: 'Uppercase F',
+      0x0047: 'Uppercase G',
+      0x0048: 'Uppercase H',
+      0x0049: 'Uppercase I',
+      0x004A: 'Uppercase J',
+      0x004B: 'Uppercase K',
+      0x004C: 'Uppercase L',
+      0x004D: 'Uppercase M',
+      0x004E: 'Uppercase N',
+      0x004F: 'Uppercase O',
+      0x0050: 'Uppercase P',
+      0x0051: 'Uppercase Q',
+      0x0052: 'Uppercase R',
+      0x0053: 'Uppercase S',
+      0x0054: 'Uppercase T',
+      0x0055: 'Uppercase U',
+      0x0056: 'Uppercase V',
+      0x0057: 'Uppercase W',
+      0x0058: 'Uppercase X',
+      0x0059: 'Uppercase Y',
+      0x005A: 'Uppercase Z'
+    };
+
     function updateFont(fontFile) {
       const url = baseURL + fontFile;
       const fontFace = new FontFace('PhosforCustom', `url(${url}) format("opentype")`);
@@ -176,8 +237,13 @@
         label.className = 'glyph-label';
         label.textContent = 'U+' + cp.toString(16).toUpperCase().padStart(4, '0');
 
+        const name = document.createElement('div');
+        name.className = 'glyph-label';
+        name.textContent = unicodeNames[cp] || '';
+
         cell.appendChild(glyph);
         cell.appendChild(label);
+        cell.appendChild(name);
         cell.addEventListener('click', () => openInspector(ch, label.textContent));
         grid.appendChild(cell);
       });
