@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Phosfor Font Showcase</title>
+  <style>
+    body {
+      margin: 0; font-family: sans-serif; background: #f8f8f8; color: #333; padding: 2rem;
+    }
+    h1 { font-size: 2.5rem; margin-bottom: 0.5rem; }
+    select { font-size: 1rem; padding: 0.5rem; margin: 1rem 0; }
+    .glyph-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
+      gap: 1rem; background: #fff; padding: 1rem; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .glyph-cell {
+      display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.5rem;
+    }
+    .glyph {
+      font-size: 2.5rem; line-height: 1;
+    }
+    .glyph-label { font-size: 0.75rem; color: #777; margin-top: 0.3rem; }
+  </style>
+</head>
+<body>
+  <h1>Phosfor Typeface Showcase</h1>
+  <label for="styleSelector">Select style:</label>
+  <select id="styleSelector">
+    <option value="Phosfor-RadiantMk1.otf">Radiant Mk1</option>
+    <option value="Phosfor-Vaulted.otf">Vaulted</option>
+    <option value="Phosfor-Aether5Pixel.otf">Aether 5 Pixel</option>
+    <option value="Phosfor-Aether52Tilted.otf">Aether 52 Pixel Tilted</option>
+    <option value="Phosfor-Aether53Italic.otf">Aether 53 Pixel Italic</option>
+    <option value="Phosfor-Aether4Lite.otf">Aether 4 Lite</option>
+    <option value="Phosfor-Aether42LiteTilt.otf">Aether 42 Lite Tilt</option>
+    <option value="Phosfor-Aether43LItalic.otf">Aether 43 Lite Italic</option>
+    <option value="Phosfor-Aether6Medium.otf">Aether 6 Medium</option>
+    <option value="Phosfor-Aether62MedTilt.otf">Aether 62 Medium Tilt</option>
+    <option value="Phosfor-Aether63MItalic.otf">Aether 63 Medium Italic</option>
+    <option value="Phosfor-Aether7Bold.otf">Aether 7 Bold</option>
+    <option value="Phosfor-Aether73BItalic.otf">Aether 73 Bold Italic</option>
+    <option value="Phosfor-Aether77ExtraBold.otf">Aether 77 Extra Bold</option>
+    <option value="Phosfor-Aether92LTE.otf">Aether 92 Lite Tilt Extended</option>
+    <option value="Phosfor-Aether94LiteExt.otf">Aether 94 Lite Extended</option>
+    <option value="Phosfor-Aether95Extended.otf">Aether 95 Pixel Extended</option>
+    <option value="Phosfor-Aether96MedExt.otf">Aether 96 Medium Extended</option>
+    <option value="Phosfor-Aether97BoldExt.otf">Aether 97 Bold Extended</option>
+    <option value="Phosfor-Aether772XBTilt.otf">Aether 772 Extra Bold Tilt</option>
+    <option value="Phosfor-Aether773XBI.otf">Aether 773 Extra Bold Italic</option>
+    <option value="Phosfor-Aether977XBE.otf">Aether 977 Extra Bold Extended</option>
+    <option value="Phosfor-RadiantMk2.otf">Radiant Mk2</option>
+  </select>
+
+  <div class="glyph-grid" id="glyphGrid"></div>
+
+  <script>
+    const unicodeList = Array.from({ length: 94 }, (_, i) => 33 + i);
+    const grid = document.getElementById('glyphGrid');
+    const styleSelector = document.getElementById('styleSelector');
+    const baseURL = 'https://gigidesigns-netizen.github.io/phosfor-font-superfamily/fonts/';
+
+    function updateFont(fontFile) {
+      const url = baseURL + fontFile;
+      const fontFace = new FontFace('PhosforCustom', `url(${url}) format("opentype")`);
+      fontFace.load().then(loaded => {
+        document.fonts.clear();  // optional
+        document.fonts.add(loaded);
+        renderGlyphs();
+      }).catch(err => console.error('Font load failed:', err));
+    }
+
+    function renderGlyphs() {
+      grid.innerHTML = '';
+      unicodeList.forEach(cp => {
+        const ch = String.fromCodePoint(cp);
+        const cell = document.createElement('div');
+        cell.className = 'glyph-cell';
+        const glyph = document.createElement('div');
+        glyph.className = 'glyph';
+        glyph.style.fontFamily = 'PhosforCustom';
+        glyph.textContent = ch;
+        const label = document.createElement('div');
+        label.className = 'glyph-label';
+        label.textContent = 'U+' + cp.toString(16).toUpperCase().padStart(4, '0');
+        cell.append(glyph, label);
+        grid.appendChild(cell);
+      });
+    }
+
+    styleSelector.addEventListener('change', () => updateFont(styleSelector.value));
+    updateFont(styleSelector.value);
+  </script>
+</body>
+</html>
