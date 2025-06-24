@@ -163,8 +163,8 @@
   <script>
     const categories = {
       upper: Array.from({ length: 26 }, (_, i) => 0x41 + i),
-      lower: Array.from({ length: 26 }, (_, i) => 0x61 + i),
       digit: Array.from({ length: 10 }, (_, i) => 0x30 + i),
+      lower: Array.from({ length: 26 }, (_, i) => 0x61 + i),
       special: [
         ...Array.from({ length: 15 }, (_, i) => 0x21 + i),
         ...Array.from({ length: 6 }, (_, i) => 0x3A + i),
@@ -174,8 +174,8 @@
     };
     const unicodeListAll = [
       ...categories.upper,
-      ...categories.lower,
       ...categories.digit,
+      ...categories.lower,
       ...categories.special
     ];
 
