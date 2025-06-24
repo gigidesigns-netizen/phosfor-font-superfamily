@@ -3,19 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <title>Phosfor Font Superfamily Showcase</title>
-  <style>
+ <style>
+    :root {
+      --bg: #f8f8f8;
+      --text: #333;
+      --panel: #fff;
+      --label: #777;
+    }
+    body.dark {
+      --bg: #121212;
+      --text: #eee;
+      --panel: #1e1e1e;
+      --label: #aaa;
+    }
     body {
       margin: 0;
       font-family: sans-serif;
-      background: #f8f8f8;
-      color: #333;
+      background: var(--bg);
+      color: var(--text);
       padding: 2rem;
+      transition: background 0.3s, color 0.3s;
     }
     h1 {
       font-size: 2.5rem;
       margin-bottom: 0.5rem;
     }
-    select, input[type="range"] {
+    select, input[type="range"], input[type="text"] {
       font-size: 1rem;
       padding: 0.5rem;
       margin: 1rem 0;
@@ -31,7 +44,7 @@
       font-size: 2.5rem;
       margin: 1rem 0;
       padding: 1rem;
-      background: #fff;
+      background: var(--panel);
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
@@ -39,7 +52,7 @@
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(4rem, 1fr));
       gap: 1rem;
-      background: #fff;
+      background: var(--panel);
       padding: 1rem;
       border-radius: 10px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -59,8 +72,9 @@
     }
     .glyph-label {
       font-size: 0.75rem;
-      color: #777;
+      color: var(--label);
       margin-top: 0.3rem;
+      text-align: center;
     }
     .inspector {
       display: none;
@@ -68,7 +82,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: white;
+      background: var(--panel);
       padding: 2rem;
       border-radius: 12px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
@@ -119,11 +133,22 @@
     <option value="Phosfor-Aether977XBE.otf">Aether 977 Extra Bold Extended</option>
     </select>
 
-    <label for="fontSize">Size:</label>
+ <label for="fontSize">Size:</label>
     <input type="range" id="fontSize" min="16" max="96" value="40">
 
     <label for="previewInput">Preview:</label>
-    <input type="text" id="previewInput" value="Start Typing In Preview Field" style="flex:1; min-width: 200px;">
+    <input type="text" id="previewInput" value="START TYPING IN PREVIEW FIELD">
+
+    <label for="categoryFilter">Category:</label>
+    <select id="categoryFilter">
+      <option value="all">All</option>
+      <option value="upper">Uppercase Letter Latin</option>
+      <option value="lower">Lowercase Letter Latin</option>
+      <option value="digit">Arabic Numerals</option>
+      <option value="special">Special Characters</option>
+    </select>
+
+    <button id="toggleTheme">Toggle Dark Mode</button>
   </div>
 
   <div id="preview" class="preview-text"></div>
@@ -136,7 +161,24 @@
   </div>
 
   <script>
-    const unicodeList = Array.from({ length: 94 }, (_, i) => 33 + i);
+    const categories = {
+      upper: Array.from({ length: 26 }, (_, i) => 0x41 + i),
+      lower: Array.from({ length: 26 }, (_, i) => 0x61 + i),
+      digit: Array.from({ length: 10 }, (_, i) => 0x30 + i),
+      special: [
+        ...Array.from({ length: 15 }, (_, i) => 0x21 + i),
+        ...Array.from({ length: 6 }, (_, i) => 0x3A + i),
+        ...Array.from({ length: 7 }, (_, i) => 0x5B + i),
+        ...Array.from({ length: 6 }, (_, i) => 0x7B + i)
+      ].flat()
+    };
+    const unicodeListAll = [
+      ...categories.upper,
+      ...categories.lower,
+      ...categories.digit,
+      ...categories.special
+    ];
+
     const grid = document.getElementById('glyphGrid');
     const styleSelector = document.getElementById('styleSelector');
     const fontSizeSlider = document.getElementById('fontSize');
@@ -146,105 +188,10 @@
     const inspector = document.getElementById('inspector');
     const inspectorGlyph = document.getElementById('inspectorGlyph');
     const inspectorLabel = document.getElementById('inspectorLabel');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const toggleTheme = document.getElementById('toggleTheme');
 
     const baseURL = 'https://gigidesigns-netizen.github.io/phosfor-font-superfamily/fonts/';
-
-    const unicodeNames = {
-      0x0021: '!',
-      0x0022: '"',
-      0x0023: '#',
-      0x0024: '$',
-      0x0025: '%',
-      0x0026: '&',
-      0x0027: 'Apostrophe',
-      0x0028: '(',
-      0x0029: ')',
-      0x002A: '*',
-      0x002B: '+',
-      0x002C: ',',
-      0x002D: '-',
-      0x002E: '.',
-      0x002F: '/',
-      0x0030: '0',
-      0x0031: '1',
-      0x0032: '2',
-      0x0033: '3',
-      0x0034: '4',
-      0x0035: '5',
-      0x0036: '6',
-      0x0037: '7',
-      0x0038: '8',
-      0x0039: '9',
-      0x003A: ':',
-      0x003B: ';',
-      0x003C: '<',
-      0x003D: '=',
-      0x003E: '>',
-      0x003F: '?',
-      0x0040: '@',
-      0x0041: 'Uppercase',
-      0x0042: 'Uppercase',
-      0x0043: 'Uppercase',
-      0x0044: 'Uppercase',
-      0x0045: 'Uppercase',
-      0x0046: 'Uppercase',
-      0x0047: 'Uppercase',
-      0x0048: 'Uppercase',
-      0x0049: 'Uppercase',
-      0x004A: 'Uppercase',
-      0x004B: 'Uppercase',
-      0x004C: 'Uppercase',
-      0x004D: 'Uppercase',
-      0x004E: 'Uppercase',
-      0x004F: 'Uppercase',
-      0x0050: 'Uppercase',
-      0x0051: 'Uppercase',
-      0x0052: 'Uppercase',
-      0x0053: 'Uppercase',
-      0x0054: 'Uppercase',
-      0x0055: 'Uppercase',
-      0x0056: 'Uppercase',
-      0x0057: 'Uppercase',
-      0x0058: 'Uppercase',
-      0x0059: 'Uppercase',
-      0x005A: 'Uppercase',
-      0x005B: '[',
-      0x005C: '/',
-      0x005D: ']',
-      0x005E: '^',
-      0x005F: '_',
-      0x0060: 'Grave',
-      0x0061: 'Lowercase',
-      0x0062: 'Lowercase',
-      0x0063: 'Lowercase',
-      0x0064: 'Lowercase',
-      0x0065: 'Lowercase',
-      0x0066: 'Lowercase',
-      0x0067: 'Lowercase',
-      0x0068: 'Lowercase',
-      0x0069: 'Lowercase',
-      0x006A: 'Lowercase',
-      0x006B: 'Lowercase',
-      0x006C: 'Lowercase',
-      0x006D: 'Lowercase',
-      0x006E: 'Lowercase',
-      0x006F: 'Lowercase',
-      0x0070: 'Lowercase',
-      0x0071: 'Lowercase',
-      0x0072: 'Lowercase',
-      0x0073: 'Lowercase',
-      0x0074: 'Lowercase',
-      0x0075: 'Lowercase',
-      0x0076: 'Lowercase',
-      0x0077: 'Lowercase',
-      0x0078: 'Lowercase',
-      0x0079: 'Lowercase',
-      0x007A: 'Lowercase',
-      0x007B: '{',
-      0x007C: '|',
-      0x007D: '}',
-      0x007E: '~'
-    };
 
     function updateFont(fontFile) {
       const url = baseURL + fontFile;
@@ -258,8 +205,10 @@
     }
 
     function renderGlyphs() {
+      const selected = categoryFilter.value;
+      const glyphs = selected === 'all' ? unicodeListAll : categories[selected];
       grid.innerHTML = '';
-      unicodeList.forEach(cp => {
+      glyphs.forEach(cp => {
         const ch = String.fromCodePoint(cp);
         const cell = document.createElement('div');
         cell.className = 'glyph-cell';
@@ -274,7 +223,10 @@
 
         const name = document.createElement('div');
         name.className = 'glyph-label';
-        name.textContent = unicodeNames[cp] || '';
+        if (cp >= 0x41 && cp <= 0x5A) name.textContent = 'Uppercase';
+        else if (cp >= 0x61 && cp <= 0x7A) name.textContent = 'Lowercase';
+        else if (cp >= 0x30 && cp <= 0x39) name.textContent = 'Arabic Numeral';
+        else name.textContent = 'Special';
 
         cell.appendChild(glyph);
         cell.appendChild(label);
@@ -307,6 +259,10 @@
       updatePreview();
     });
     previewInput.addEventListener('input', updatePreview);
+    categoryFilter.addEventListener('change', renderGlyphs);
+    toggleTheme.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+    });
 
     updateFont(styleSelector.value);
   </script>
